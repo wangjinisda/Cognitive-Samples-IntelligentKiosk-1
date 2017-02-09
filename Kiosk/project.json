@@ -6,6 +6,7 @@
     "Microsoft.ProjectOxford.Vision": "1.0.370",
     "Microsoft.Rest.ClientRuntime": "0.9.6",
     "Newtonsoft.Json": "8.0.2",
+    "WindowsAzure.Storage": "8.0.1",
     "WriteableBitmapEx": "1.5.0"
   },
   "frameworks": {

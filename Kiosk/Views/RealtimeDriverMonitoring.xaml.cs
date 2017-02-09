@@ -82,6 +82,29 @@ namespace IntelligentKioskSample.Views
         public const double DefaultSleepingApertureThreshold = 0.15;
         public const double DefaultYawningApertureThreshold = 0.35;
 
+        private Windows.System.Display.DisplayRequest _displayRequest;
+
+        public void ActivateDisplay()
+        {
+            //create the request instance if needed
+            if (_displayRequest == null)
+                _displayRequest = new Windows.System.Display.DisplayRequest();
+
+            //make request to put in active state
+            _displayRequest.RequestActive();
+        }
+
+        public void ReleaseDisplay()
+        {
+            //must be same instance, so quit if it doesn't exist
+            if (_displayRequest == null)
+                return;
+
+            //undo the request
+            _displayRequest.RequestRelease();
+        }
+
+
         private double sleepingApertureThreshold;
         public double SleepingApertureThreshold
         {
@@ -126,8 +149,11 @@ namespace IntelligentKioskSample.Views
 
             if (this.processingLoopTask == null || this.processingLoopTask.Status != TaskStatus.Running)
             {
-                this.processingLoopTask = Task.Run(() => this.ProcessingLoop());
+                //this.processingLoopTask = Task.Run(() => this.ProcessingLoop());
             }
+
+            this.ActivateDisplay();
+            Task.Run(() => this.cameraControl.CreateVideoFilesAsync());
         }
 
 
@@ -390,6 +416,7 @@ namespace IntelligentKioskSample.Views
 
                 await this.cameraControl.StartStreamAsync(isForRealTimeProcessing: true);
                 this.StartProcessingLoop();
+                //this.cameraControl.CreateVideoFilesAsync();
             }
 
             base.OnNavigatedTo(e);

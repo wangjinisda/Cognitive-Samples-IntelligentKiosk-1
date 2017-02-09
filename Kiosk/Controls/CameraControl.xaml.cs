@@ -54,6 +54,11 @@ using Windows.System.Threading;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using IntelligentKioskSample.Storage;
+using Windows.Storage.Streams;
+using IntelligentKioskSample.AddOpg.WebClient;
+using IntelligentKioskSample.AddOpg.Models;
+using IntelligentKioskSample.AddOpg.Static;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -122,6 +127,18 @@ namespace IntelligentKioskSample.Controls
 
         public int NumFacesOnLastFrame { get; set; }
 
+        private AzureStorageClient AzureStorageClient
+        {
+            get
+            {
+                return new AzureStorageClient();
+            }
+            set
+            {
+
+            }
+        }
+
         public CameraStreamState CameraStreamState { get { return captureManager != null ? captureManager.CameraStreamState : CameraStreamState.NotStreaming; } }
 
         private MediaCapture captureManager;
@@ -133,6 +150,8 @@ namespace IntelligentKioskSample.Controls
         private IEnumerable<DetectedFace> detectedFacesFromPreviousFrame;
         private DateTime timeSinceWaitingForStill;
         private DateTime lastTimeWhenAFaceWasDetected;
+
+        private OpgClient OpgClient = new OpgClient();
 
         private IRealTimeDataProvider realTimeDataProvider;
 
@@ -591,6 +610,52 @@ namespace IntelligentKioskSample.Controls
                 await StartStreamAsync();
 
                 this.CameraRestarted?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public async void CreateVideoFilesAsync()
+        {
+
+            var myVideos = await Windows.Storage.StorageLibrary.GetLibraryAsync(Windows.Storage.KnownLibraryId.Videos);
+
+            while (true)
+            {
+                var blobName = Guid.NewGuid().ToString();
+                //StorageFile file = await myVideos.SaveFolder.CreateFileAsync(blobName + ".mp4", CreationCollisionOption.GenerateUniqueName);
+                using (var fileObj = new MemoryStream())
+                {
+                    if(this.captureManager.CameraStreamState == CameraStreamState.Streaming)
+                    {
+                        var _mediaRecording = await this.captureManager.PrepareLowLagRecordToStreamAsync(
+                            MediaEncodingProfile.CreateMp4(VideoEncodingQuality.Auto), fileObj.AsRandomAccessStream());
+
+                        this.captureManager.RecordLimitationExceeded += async (s) => {
+                            await _mediaRecording.FinishAsync();
+                            System.Diagnostics.Debug.WriteLine("Record limitation exceeded.");
+
+                        };
+
+                        await _mediaRecording.StartAsync();
+                        await Task.Delay(10000);
+                        await _mediaRecording.StopAsync();
+                        await _mediaRecording.FinishAsync();
+                        //await Task.Run(async() =>{
+                        fileObj.Position = 0;
+                        var beginTime = DateTime.UtcNow;
+                        var url = await AzureStorageClient.UploadVideoFileAsync(fileObj, blobName);
+                        await OpgClient.SendMessageToCloud(new UploadedVideoModel
+                        {
+                            CampaignId = Configrations.CampaignId,
+                            CameraId = Configrations.CameraId,
+                            VideoId = blobName,
+                            VideoUploadBeginTime = beginTime,
+                            VideoUploadEndTime = DateTime.UtcNow,
+                            VideoUrl = url
+                        });
+
+
+                    }
+                }
             }
         }
     }

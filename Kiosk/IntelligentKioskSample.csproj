@@ -102,6 +102,10 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddOpg\Models\OpgResponseModel.cs" />
+    <Compile Include="AddOpg\Models\UploadedVideoModel.cs" />
+    <Compile Include="AddOpg\Static\Configrations.cs" />
+    <Compile Include="AddOpg\WebClient\OpgClient.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
@@ -161,6 +165,7 @@
     </Compile>
     <Compile Include="NavMenuItem.cs" />
     <Compile Include="SettingsHelper.cs" />
+    <Compile Include="AddOpg\Storage\AzureStorageClient.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Views\BingNewsAnalytics.xaml.cs">
       <DependentUpon>BingNewsAnalytics.xaml</DependentUpon>
@@ -168,7 +173,7 @@
     <Compile Include="Views\DemoLauncherPage.xaml.cs">
       <DependentUpon>DemoLauncherPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\GreetingKiosk.xaml.cs" >
+    <Compile Include="Views\GreetingKiosk.xaml.cs">
       <DependentUpon>GreetingKiosk.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MallKioskPage.xaml.cs">
