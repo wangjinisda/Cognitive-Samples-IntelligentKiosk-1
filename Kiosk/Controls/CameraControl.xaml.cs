@@ -261,7 +261,8 @@ namespace IntelligentKioskSample.Controls
             );
             */
             await MyRunCode(timer);
-            await Task.Factory.StartNew((async () => await CaptureFrameAndSendToServerAsync()));
+            //await Task.Run((async () => await CaptureFrameAndSendToServerAsync()));
+            //await Task.Factory.StartNew(async ()=> await CaptureFrameAndSendToServerAsync());
         }
 
 
@@ -283,7 +284,7 @@ namespace IntelligentKioskSample.Controls
 
                 //Task.Run(async () => await CaptureFrameAndSendToServerAsync());
                 //Task.Factory.StartNew(async () => await CaptureFrameAndSendToServerAsync());
-
+                await CaptureFrameAndSendToServerAsync();
                 const BitmapPixelFormat InputPixelFormat = BitmapPixelFormat.Nv12;
 
                 using (VideoFrame previewFrame = new VideoFrame(InputPixelFormat, (int)this.videoProperties.Width, (int)this.videoProperties.Height))
@@ -585,38 +586,35 @@ namespace IntelligentKioskSample.Controls
 
         public async Task CaptureFrameAndSendToServerAsync()
         {
-            if (this.captureManager.CameraStreamState == CameraStreamState.Streaming)
+            var videoFrame = new VideoFrame(BitmapPixelFormat.Bgra8, CameraResolutionWidth, CameraResolutionHeight);
+            using (var currentFrame = await captureManager.GetPreviewFrameAsync(videoFrame))
             {
-                var videoFrame = new VideoFrame(BitmapPixelFormat.Bgra8, CameraResolutionWidth, CameraResolutionHeight);
-                using (var currentFrame = await captureManager.GetPreviewFrameAsync(videoFrame))
+                //var faces = await this.faceTracker.ProcessNextFrameAsync(videoFrame);
+                //if (faces.Count() <= 0) return;
+
+                using (SoftwareBitmap previewFrame = currentFrame.SoftwareBitmap)
                 {
-                    //var faces = await this.faceTracker.ProcessNextFrameAsync(videoFrame);
-                    //if (faces.Count() <= 0) return;
-
-                    using (SoftwareBitmap previewFrame = currentFrame.SoftwareBitmap)
+                    var frameBytes = await Util.GetPixelBytesFromSoftwareBitmapAsync(previewFrame);
+                    var imageStr = Convert.ToBase64String(frameBytes);
+                    //var  stream = await Task.FromResult<Stream>(new MemoryStream(frameBytes));
+                    try
                     {
-                        var frameBytes = await Util.GetPixelBytesFromSoftwareBitmapAsync(previewFrame);
-                        var imageStr = Convert.ToBase64String(frameBytes);
-                        //var  stream = await Task.FromResult<Stream>(new MemoryStream(frameBytes));
-                        try
+                        await OpgClient.SendImageAsBase64String(new ImageModel
                         {
-                            await OpgClient.SendImageAsBase64String(new ImageModel
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                CampaignId = Configrations.CampaignId,
-                                CameraId = Configrations.CameraId,
-                                VideoId = CurrentVideoId,
-                                ImageBase64String = imageStr,
-                                SentTime = DateTime.UtcNow,
-                            });
-                        }
-                        catch (Exception e)
-                        {
-                        }
-
+                            Id = Guid.NewGuid().ToString(),
+                            CampaignId = Configrations.CampaignId,
+                            CameraId = Configrations.CameraId,
+                            VideoId = CurrentVideoId,
+                            ImageBase64String = imageStr,
+                            SentTime = DateTime.UtcNow,
+                        });
+                    }
+                    catch (Exception e)
+                    {
                     }
 
                 }
+
             }
         }
 

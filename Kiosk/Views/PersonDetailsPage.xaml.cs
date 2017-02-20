@@ -54,6 +54,8 @@ using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.Storage;
 using ServiceHelpers;
+using IntelligentKioskSample.AddOpg.WebClient;
+using IntelligentKioskSample.AddOpg.Models;
 
 namespace IntelligentKioskSample.Views
 {
@@ -127,6 +129,7 @@ namespace IntelligentKioskSample.Views
 
             bool foundError = false;
             Exception lastError = null;
+            var client = new OpgClient();
             foreach (var item in args)
             {
                 try
@@ -139,6 +142,25 @@ namespace IntelligentKioskSample.Views
                             imageStreamCallback: item.GetImageStreamCallback,
                             userData: item.LocalImagePath,
                             targetFace: null);
+
+                        var imageStream = await item.GetImageStreamCallback();
+                        //var buffer = new byte[imageStream.Length];
+                       // await imageStream.ReadAsync(buffer, 0, (int)imageStream.Length);
+                        using (var mem = new MemoryStream())
+                        {
+                            imageStream.Position = 0;
+                            await imageStream.CopyToAsync(mem);
+                            mem.Position = 0;
+                            var str = Convert.ToBase64String(mem.ToArray());
+                            await client.FacesAddToSpecificPersonGroup(new ImageForNameModel
+                            {
+                                id = Guid.NewGuid().ToString(),
+                                ImageBase64String = str,
+                                name = CurrentPerson.Name,
+                                SentTime = DateTime.UtcNow
+                            });
+                        }
+
                     }
                     else
                     {
