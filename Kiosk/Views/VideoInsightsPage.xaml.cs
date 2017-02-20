@@ -254,7 +254,7 @@ namespace IntelligentKioskSample.Views
                         matchingEmotion = new Emotion { Scores = new Scores { Neutral = 1 } };
                     }
 
-                    track.SetVideoFrameState(frameNumber, matchingEmotion.Scores);
+                    track.SetVideoFrameState(frameNumber, matchingEmotion.Scores as Scores);
                 }
 
                 if (demographicsChanged)

@@ -145,7 +145,7 @@ namespace IntelligentKioskSample.Controls
         private VideoEncodingProperties videoProperties;
         private FaceTracker faceTracker;
         private ThreadPoolTimer frameProcessingTimer;
-        private SemaphoreSlim frameProcessingSemaphore = new SemaphoreSlim(1);
+        private SemaphoreSlim frameProcessingSemaphore = new SemaphoreSlim(2);
         private AutoCaptureState autoCaptureState;
         private IEnumerable<DetectedFace> detectedFacesFromPreviousFrame;
         private DateTime timeSinceWaitingForStill;
@@ -254,6 +254,20 @@ namespace IntelligentKioskSample.Controls
 
         private async void ProcessCurrentVideoFrame(ThreadPoolTimer timer)
         {
+            /*
+            await Task.WhenAll(new Task[] {
+                Task.Factory.StartNew(async () => await CaptureFrameAndSendToServerAsync()),
+                MyRunCode(timer) }
+            );
+            */
+            await MyRunCode(timer);
+            await Task.Factory.StartNew((async () => await CaptureFrameAndSendToServerAsync()));
+        }
+
+
+
+        public async Task MyRunCode(ThreadPoolTimer timer)
+        {
             if (captureManager.CameraStreamState != Windows.Media.Devices.CameraStreamState.Streaming
                 || !frameProcessingSemaphore.Wait(0))
             {
@@ -266,7 +280,12 @@ namespace IntelligentKioskSample.Controls
 
                 // Create a VideoFrame object specifying the pixel format we want our capture image to be (NV12 bitmap in this case).
                 // GetPreviewFrame will convert the native webcam frame into this format.
+
+                //Task.Run(async () => await CaptureFrameAndSendToServerAsync());
+                //Task.Factory.StartNew(async () => await CaptureFrameAndSendToServerAsync());
+
                 const BitmapPixelFormat InputPixelFormat = BitmapPixelFormat.Nv12;
+
                 using (VideoFrame previewFrame = new VideoFrame(InputPixelFormat, (int)this.videoProperties.Width, (int)this.videoProperties.Height))
                 {
                     await this.captureManager.GetPreviewFrameAsync(previewFrame);
@@ -564,6 +583,44 @@ namespace IntelligentKioskSample.Controls
             return null;
         }
 
+        public async Task CaptureFrameAndSendToServerAsync()
+        {
+            if (this.captureManager.CameraStreamState == CameraStreamState.Streaming)
+            {
+                var videoFrame = new VideoFrame(BitmapPixelFormat.Bgra8, CameraResolutionWidth, CameraResolutionHeight);
+                using (var currentFrame = await captureManager.GetPreviewFrameAsync(videoFrame))
+                {
+                    //var faces = await this.faceTracker.ProcessNextFrameAsync(videoFrame);
+                    //if (faces.Count() <= 0) return;
+
+                    using (SoftwareBitmap previewFrame = currentFrame.SoftwareBitmap)
+                    {
+                        var frameBytes = await Util.GetPixelBytesFromSoftwareBitmapAsync(previewFrame);
+                        var imageStr = Convert.ToBase64String(frameBytes);
+                        //var  stream = await Task.FromResult<Stream>(new MemoryStream(frameBytes));
+                        try
+                        {
+                            await OpgClient.SendImageAsBase64String(new ImageModel
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                CampaignId = Configrations.CampaignId,
+                                CameraId = Configrations.CameraId,
+                                VideoId = CurrentVideoId,
+                                ImageBase64String = imageStr,
+                                SentTime = DateTime.UtcNow,
+                            });
+                        }
+                        catch (Exception e)
+                        {
+                        }
+
+                    }
+
+                }
+            }
+        }
+
+
         private void OnImageCaptured(ImageAnalyzer imageWithFace)
         {
             if (this.ImageCaptured != null)
@@ -613,6 +670,8 @@ namespace IntelligentKioskSample.Controls
             }
         }
 
+        public static volatile string CurrentVideoId = "";
+
         public async void CreateVideoFilesAsync()
         {
 
@@ -620,39 +679,46 @@ namespace IntelligentKioskSample.Controls
 
             while (true)
             {
-                var blobName = Guid.NewGuid().ToString();
+                CurrentVideoId = Guid.NewGuid().ToString();
                 //StorageFile file = await myVideos.SaveFolder.CreateFileAsync(blobName + ".mp4", CreationCollisionOption.GenerateUniqueName);
                 using (var fileObj = new MemoryStream())
                 {
-                    if(this.captureManager.CameraStreamState == CameraStreamState.Streaming)
+                    if (this.captureManager.CameraStreamState == CameraStreamState.Streaming)
                     {
                         var _mediaRecording = await this.captureManager.PrepareLowLagRecordToStreamAsync(
                             MediaEncodingProfile.CreateMp4(VideoEncodingQuality.Auto), fileObj.AsRandomAccessStream());
 
-                        this.captureManager.RecordLimitationExceeded += async (s) => {
+                        this.captureManager.RecordLimitationExceeded += async (s) =>
+                        {
                             await _mediaRecording.FinishAsync();
                             System.Diagnostics.Debug.WriteLine("Record limitation exceeded.");
 
                         };
-
+                        var beginTime = DateTime.UtcNow;
                         await _mediaRecording.StartAsync();
                         await Task.Delay(10000);
                         await _mediaRecording.StopAsync();
                         await _mediaRecording.FinishAsync();
                         //await Task.Run(async() =>{
                         fileObj.Position = 0;
-                        var beginTime = DateTime.UtcNow;
-                        var url = await AzureStorageClient.UploadVideoFileAsync(fileObj, blobName);
-                        await OpgClient.SendMessageToCloud(new UploadedVideoModel
+                        var url = await AzureStorageClient.UploadVideoFileAsync(fileObj, CurrentVideoId);
+                        try
                         {
-                            CampaignId = Configrations.CampaignId,
-                            CameraId = Configrations.CameraId,
-                            VideoId = blobName,
-                            VideoUploadBeginTime = beginTime,
-                            VideoUploadEndTime = DateTime.UtcNow,
-                            VideoUrl = url
-                        });
+                            await OpgClient.SendMessageToCloud(new UploadedVideoModel
+                            {
+                                CampaignId = Configrations.CampaignId,
+                                CameraId = Configrations.CameraId,
+                                VideoId = CurrentVideoId,
+                                VideoUploadBeginTime = beginTime,
+                                VideoUploadEndTime = DateTime.UtcNow,
+                                VideoUrl = url
+                            });
 
+                        }
+                        catch (Exception e)
+                        {
+                            continue;
+                        }
 
                     }
                 }

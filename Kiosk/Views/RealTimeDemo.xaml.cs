@@ -390,7 +390,7 @@ namespace IntelligentKioskSample.Views
                 return null;
             }
 
-            return this.lastEmotionSample.OrderBy(f => Math.Abs(faceBox.X - f.FaceRectangle.Left) + Math.Abs(faceBox.Y - f.FaceRectangle.Top)).First().Scores;
+            return this.lastEmotionSample.OrderBy(f => Math.Abs(faceBox.X - f.FaceRectangle.Left) + Math.Abs(faceBox.Y - f.FaceRectangle.Top)).First().Scores as Scores;
         }
 
         public Face GetLastFaceAttributesForFace(BitmapBounds faceBox)

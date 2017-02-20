@@ -179,7 +179,7 @@ namespace IntelligentKioskSample.Controls
 
         public void ShowEmotionData(Emotion emotion)
         {
-            this.EmotionData = EmotionServiceHelper.ScoresToEmotionData(emotion.Scores).OrderByDescending(e => e.EmotionScore).ToArray();
+            this.EmotionData = EmotionServiceHelper.ScoresToEmotionData(emotion.Scores as Scores).OrderByDescending(e => e.EmotionScore).ToArray();
 
             this.DataContext = this;
 

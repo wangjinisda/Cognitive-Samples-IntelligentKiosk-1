@@ -56,6 +56,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using IntelligentKioskSample.AddOpg.WebClient;
 
 namespace IntelligentKioskSample.Views
 {
@@ -220,6 +221,10 @@ namespace IntelligentKioskSample.Views
             {
                 await new MessageDialog("Training finished with failure.").ShowAsync();
             }
+
+            var client = new OpgClient();
+
+            await client.PersonGroupTrain("");
         }
 
         private async void OnConfirmImportButtonClicked(object sender, RoutedEventArgs e)

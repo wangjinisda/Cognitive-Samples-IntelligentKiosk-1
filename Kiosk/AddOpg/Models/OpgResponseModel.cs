@@ -11,5 +11,7 @@ namespace IntelligentKioskSample.AddOpg.Models
         public string EffectLines { get; set; }
 
         public string MessageStatus { get; set; }
+
+        public string FaceCheckStatus { get; set; }
     }
 }

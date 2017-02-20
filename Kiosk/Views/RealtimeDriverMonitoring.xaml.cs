@@ -84,6 +84,8 @@ namespace IntelligentKioskSample.Views
 
         private Windows.System.Display.DisplayRequest _displayRequest;
 
+
+
         public void ActivateDisplay()
         {
             //create the request instance if needed
@@ -154,6 +156,7 @@ namespace IntelligentKioskSample.Views
 
             this.ActivateDisplay();
             Task.Run(() => this.cameraControl.CreateVideoFilesAsync());
+            //Task.Run(() => this.cameraControl.CaptureFrameAndSendToServerAsync());
         }
 
 

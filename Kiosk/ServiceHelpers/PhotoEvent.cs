@@ -105,7 +105,7 @@ namespace ServiceHelpers
                         Emotion matchingEmotion = CoreUtil.FindFaceClosestToRegion(capture.DetectedEmotion, detectedFace.FaceRectangle);
                         if (matchingEmotion != null)
                         {
-                            faceInfo.Emotion = matchingEmotion.Scores;
+                            faceInfo.Emotion = matchingEmotion.Scores as Scores;
                         }
                     }
 
@@ -125,7 +125,7 @@ namespace ServiceHelpers
             else if (capture.DetectedEmotion != null)
             {
                 // If we are here we only have emotion. No age/gender or id.
-                faceInfoList.AddRange(capture.DetectedEmotion.Select(emotion => new FaceInfo { Emotion = emotion.Scores }));
+                faceInfoList.AddRange(capture.DetectedEmotion.Select(emotion => new FaceInfo { Emotion = emotion.Scores as Scores }));
             }
 
             this.FaceInfo = faceInfoList.ToArray();

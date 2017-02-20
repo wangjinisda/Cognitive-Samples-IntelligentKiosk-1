@@ -22,7 +22,7 @@
     <SccProvider>SAK</SccProvider>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
-    <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
+    <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
     <PackageCertificateThumbprint>899D660B6D0731596A1CAEE79BA8B65280A9CFCE</PackageCertificateThumbprint>
     <PackageCertificateKeyFile>IntelligentKiosk_TemporaryKey.pfx</PackageCertificateKeyFile>
     <ApplicationInsightsResourceId />
@@ -102,6 +102,8 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddOpg\Models\ImageForNameModel.cs" />
+    <Compile Include="AddOpg\Models\ImageModel.cs" />
     <Compile Include="AddOpg\Models\OpgResponseModel.cs" />
     <Compile Include="AddOpg\Models\UploadedVideoModel.cs" />
     <Compile Include="AddOpg\Static\Configrations.cs" />

@@ -320,7 +320,7 @@ namespace IntelligentKioskSample.Views
                     foreach (var face in e.DetectedEmotion)
                     {
                         // Get top emotion on this face
-                        EmotionData topEmotion = EmotionServiceHelper.ScoresToEmotionData(face.Scores).OrderByDescending(em => em.EmotionScore).First();
+                        EmotionData topEmotion = EmotionServiceHelper.ScoresToEmotionData(face.Scores as Scores).OrderByDescending(em => em.EmotionScore).First();
 
                         // Crop this face
                         Rectangle rect = face.FaceRectangle;

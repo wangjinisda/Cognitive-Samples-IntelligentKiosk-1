@@ -39,6 +39,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using IntelligentKioskSample.AddOpg.WebClient;
 
 namespace IntelligentKioskSample.Views
 {
@@ -92,6 +93,8 @@ namespace IntelligentKioskSample.Views
             {
                 await Util.GenericApiCallExceptionHandler(ex, "Failure creating group");
             }
+            var client = new OpgClient();
+            await client.GroupCreation("");
         }
 
         private void OnCancelAddPersonGroupButtonClicked(object sender, RoutedEventArgs e)
