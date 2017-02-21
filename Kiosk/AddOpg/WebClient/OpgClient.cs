@@ -11,9 +11,9 @@ namespace IntelligentKioskSample.AddOpg.WebClient
 {
     public class OpgClient
     {
-        public string baseAddress = "http://localhost:5000/";
+        //public string baseAddress = "http://localhost:5000/";
 
-        //public string baseAddress = "http://opgwebapi.chinacloudsites.cn/";
+        public string baseAddress = "http://opgwebapi.chinacloudsites.cn/";
 
         public HttpClient HttpClient { get; set; }
 
