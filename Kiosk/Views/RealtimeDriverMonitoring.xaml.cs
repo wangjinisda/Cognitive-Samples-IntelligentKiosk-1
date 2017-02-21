@@ -51,6 +51,8 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using System.ComponentModel;
 using Windows.Media.SpeechSynthesis;
+using IntelligentKioskSample.AddOpg.WebClient;
+using IntelligentKioskSample.AddOpg.Static;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -422,6 +424,8 @@ namespace IntelligentKioskSample.Views
                 //this.cameraControl.CreateVideoFilesAsync();
             }
 
+            var client = new OpgClient();
+            await client.CameraRegister(Configrations.CameraId);
             base.OnNavigatedTo(e);
         }
 

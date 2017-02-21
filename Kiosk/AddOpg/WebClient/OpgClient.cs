@@ -11,9 +11,9 @@ namespace IntelligentKioskSample.AddOpg.WebClient
 {
     public class OpgClient
     {
-        //public string baseAddress = "http://localhost:5000/";
+        public string baseAddress = "http://localhost:5000/";
 
-        public string baseAddress = "http://opgwebapi.chinacloudsites.cn/";
+        //public string baseAddress = "http://opgwebapi.chinacloudsites.cn/";
 
         public HttpClient HttpClient { get; set; }
 
@@ -127,6 +127,21 @@ namespace IntelligentKioskSample.AddOpg.WebClient
                 return JsonConvert.DeserializeObject<OpgResponseModel>(outs);
             }
         }
+
+        public async Task<OpgResponseModel> CameraRegister(string name)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, baseAddress + "api/Cameras/Register/" + name);
+
+            using (var content = new StringContent(JsonConvert.SerializeObject(null), Encoding.UTF8, "application/json"))
+            {
+                request.Content = content;
+                var response = await HttpClient.SendAsync(request).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                var outs = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                return JsonConvert.DeserializeObject<OpgResponseModel>(outs);
+            }
+        }
+
 
 
     }
